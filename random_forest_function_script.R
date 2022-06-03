@@ -398,3 +398,30 @@ reformat_random_forest_df_output_statistics_addeded = function(df, UK_code, site
   }
 }
 
+#----------outputs model statistics in an easy to read format ---------------
+
+urban_model_statistics = function(df, UK_code){
+  names(df) = UK_code
+  
+  predict_df = plyr::ldply(df, 
+                           data.frame) %>%
+    filter(!is.na(date)) %>%
+    rename(sites = .id)%>%
+    select(sites, date, training_rsquared, training_mse, testing_rsquared, testing_mse) %>%
+    mutate(training_rsquared = training_rsquared*100, testing_rsquared = testing_rsquared*100) %>%
+    group_by(sites) %>%
+    summarise_all(mean) %>%
+    select(-date) %>%
+    rename(Training_Rsquared=training_rsquared,
+           Training_MSE=training_mse,
+           Testing_Rsquared=testing_rsquared,
+           Testing_MSE=testing_mse)%>%
+    arrange(Testing_Rsquared) %>%
+    ungroup() %>%
+    mutate(site_id = row_number())%>%
+    pivot_longer(-c(sites, site_id), names_to = "statistics") %>%
+    separate(statistics, into = c("Data", "stat"), sep = "_")
+  
+  return(predict_df)
+  
+}
