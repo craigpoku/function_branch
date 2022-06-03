@@ -298,7 +298,7 @@ BAU_observed_combined_df = function(df, site, n_tree, begin_date_train, end_date
 }
 
 #---------------reformats output from random forest df to make more user friendly, add in statistics and has the option to include just a subset of sites (e.g. ULEZ vs Greater London) ------
-reformat_random_forest_df_output_statistics_addeded = function(df, UK_code, site_subset_code,
+reformat_random_forest_df_output_statistics_added = function(df, UK_code, site_subset_code,
                                                  normal=TRUE, site_subset = TRUE){
   names(df) = UK_code
   
