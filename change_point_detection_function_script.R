@@ -127,3 +127,19 @@ change_point_model_statistics = function(df, window_length, stats = TRUE){
   
   return(df_combo)
 }
+
+#---------returns where a CP in one series coincides with another, note, it has to be exact ---------
+
+coinciding_cp_generator = function(df){
+  
+  cp_coinciding = df %>%
+    filter(cp==TRUE, variables == "Input dataset")%>% 
+    group_by(date) %>% 
+    filter(n()>1) %>%
+    select(date)%>% 
+    distinct()
+  
+  cp_coinciding_list = unique(cp_coinciding$date)
+  
+  return(cp_coinciding_list)
+}
