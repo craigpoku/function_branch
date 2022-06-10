@@ -39,8 +39,9 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
              df_label = df_header_code,
              window_length_level = as.factor(window_length_vector),
              derv_2nd = as.numeric(abs(pracma::gradient(grad))),
-             cp = derv_2nd/lag(derv_2nd) > cp_factor &
-               lag(derv_2nd) > epsilon,
+             cp = lead(derv_2nd)/derv_2nd > cp_factor &
+               lead(derv_2nd)-derv_2nd > 0 &
+               derv_2nd > epsilon,
       ) %>%rename("Input dataset" = data,
                   "Rolling gradient" = grad,
                   "2nd derivative" = derv_2nd)%>%
@@ -66,9 +67,9 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
              df_label = df_header_code,
              window_length_level = as.factor(window_length_vector),
              derv_2nd = as.numeric(abs(pracma::gradient(grad))),
-             cp = derv_2nd/lag(derv_2nd) > cp_factor &
-               derv_2nd-lag(derv_2nd) > 0 &
-               lag(derv_2nd) > epsilon
+             cp = lead(derv_2nd)/derv_2nd > cp_factor &
+               lead(derv_2nd)-derv_2nd > 0 &
+               derv_2nd > epsilon
       ) %>%rename("Test dataset" = data,
                   "Rolling gradient" = grad,
                   "2nd derivative" = derv_2nd)%>%
@@ -90,7 +91,7 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
 
 change_point_model_statistics = function(df, window_length, stats = TRUE){
   df_reformat = df %>%
-    filter(variables == "Test dataset", window_length_level == window_length) %>%
+    filter(variables == "Input dataset", window_length_level == window_length) %>%
     mutate(date = lubridate::as_date(date))
   
   cp_df  = df_reformat %>%
@@ -104,7 +105,7 @@ change_point_model_statistics = function(df, window_length, stats = TRUE){
     rename(date = Dates_seq, approx_value = LinearFit)
   
   df_new = df %>%
-    filter(window_length_level == window_length, variables == "Test dataset") 
+    filter(window_length_level == window_length, variables == "Input dataset") 
   
   if(stats == TRUE){
     
