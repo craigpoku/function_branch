@@ -38,6 +38,7 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
              data = df_filter$value,
              df_label = df_header_code,
              window_length_level = as.factor(window_length_vector),
+             cp_factor_sensitivity = as.factor(cp_factor),
              derv_2nd = as.numeric(abs(pracma::gradient(grad))),
              cp = lead(derv_2nd)/derv_2nd > cp_factor &
                lead(derv_2nd)-derv_2nd > 0 &
@@ -47,7 +48,7 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
                   "2nd derivative" = derv_2nd)%>%
       select(-"(Intercept)") %>%
       drop_na() %>%
-      pivot_longer(-c(date, window_length_level,df_label, cp), 
+      pivot_longer(-c(date, window_length_level,cp_factor_sensitivity,df_label, cp), 
                    names_to = "variables")%>%
       mutate(variables = factor(variables, 
                                 levels = c("Input dataset", "Rolling gradient", "2nd derivative"
@@ -66,6 +67,7 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
              data = df_filter$value,
              df_label = df_header_code,
              window_length_level = as.factor(window_length_vector),
+             cp_factor_sensitivity = as.factor(cp_factor),
              derv_2nd = as.numeric(abs(pracma::gradient(grad))),
              cp = lead(derv_2nd)/derv_2nd > cp_factor &
                lead(derv_2nd)-derv_2nd > 0 &
@@ -75,7 +77,7 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
                   "2nd derivative" = derv_2nd)%>%
       select(-"(Intercept)") %>%
       drop_na() %>%
-      pivot_longer(-c(index, window_length_level,df_label, cp), 
+      pivot_longer(-c(index, window_length_level,cp_factor_sensitivity, df_label, cp), 
                    names_to = "variables")%>%
       mutate(variables = factor(variables, 
                                 levels = c("Test dataset", "Rolling gradient", "2nd derivative"
