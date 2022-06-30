@@ -20,7 +20,7 @@ linear_function_generator = function(index, df, seq, epsilon){
 #-----------Updated function that determines the CP based on ratio of previous to current point using the 2nd derivative of a univariant time series ----------
 
 multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_header_code, 
-                                              epsilon, cp_factor, date = TRUE){
+                                              sd_value, date = TRUE){
   
   df_filter = df %>%
     filter(df_header == df_header_code)
@@ -38,20 +38,21 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
              data = df_filter$value,
              df_label = df_header_code,
              window_length_level = as.factor(window_length_vector),
-             cp_factor_sensitivity = as.factor(cp_factor),
-             derv_2nd = as.numeric(abs(pracma::gradient(grad))),
-             cp = lead(derv_2nd)/derv_2nd > cp_factor &
-               lead(derv_2nd)-derv_2nd > 0 &
-               derv_2nd > epsilon,
-      ) %>%rename("Input dataset" = data,
-                  "Rolling gradient" = grad,
-                  "2nd derivative" = derv_2nd)%>%
+             derv_2nd = as.numeric(pracma::gradient(grad)),
+             cp = derv_2nd > mean(derv_2nd, na.rm = TRUE) + sd_value*sd(derv_2nd, na.rm = TRUE) |
+               derv_2nd < mean(derv_2nd, na.rm = TRUE) - sd_value*sd(derv_2nd, na.rm = TRUE),
+             cp = as.numeric(cp),
+             cp_noise_filter = ifelse(cp == 1 & lag(cp) == 0 & lead(cp) %in% c(1), cp, 0),
+             cp_marker = lag(cp_noise_filter) < cp_noise_filter
+      ) %>%rename("1. Input dataset" = data,
+                  "2. Rolling gradient" = grad,
+                  "3. 2nd derivative" = derv_2nd)%>%
       select(-"(Intercept)") %>%
       drop_na() %>%
-      pivot_longer(-c(date, window_length_level,cp_factor_sensitivity,df_label, cp), 
+      pivot_longer(-c(date, window_length_level,df_label, cp, cp_noise_filter, cp_marker), 
                    names_to = "variables")%>%
       mutate(variables = factor(variables, 
-                                levels = c("Input dataset", "Rolling gradient", "2nd derivative"
+                                levels = c("1. Input dataset", "2. Rolling gradient", "3. 2nd derivative"
                                            , "r.squareds")))
   }
   else{
@@ -67,20 +68,22 @@ multi_var_ts_gradient_cp_detection = function(df, window_length_vector, df_heade
              data = df_filter$value,
              df_label = df_header_code,
              window_length_level = as.factor(window_length_vector),
-             cp_factor_sensitivity = as.factor(cp_factor),
-             derv_2nd = as.numeric(abs(pracma::gradient(grad))),
-             cp = lead(derv_2nd)/derv_2nd > cp_factor &
-               lead(derv_2nd)-derv_2nd > 0 &
-               derv_2nd > epsilon
-      ) %>%rename("Test dataset" = data,
-                  "Rolling gradient" = grad,
-                  "2nd derivative" = derv_2nd)%>%
+             derv_2nd = as.numeric(pracma::gradient(grad)),
+             #min(which(v > 100))
+             cp = derv_2nd > mean(derv_2nd, na.rm = TRUE) + sd_value*sd(derv_2nd, na.rm = TRUE) |
+               derv_2nd < mean(derv_2nd, na.rm = TRUE) - sd_value*sd(derv_2nd, na.rm = TRUE),
+             cp = as.numeric(cp),
+             cp_noise_filter = ifelse(cp == 1 & lag(cp) == 0 & lead(cp) %in% c(1), cp, 0),
+             cp_marker = lag(cp_noise_filter) < cp_noise_filter
+      ) %>%rename("1. Input dataset" = data,
+                  "2. Rolling gradient" = grad,
+                  "3. 2nd derivative" = derv_2nd)%>%
       select(-"(Intercept)") %>%
       drop_na() %>%
-      pivot_longer(-c(index, window_length_level,cp_factor_sensitivity, df_label, cp), 
+      pivot_longer(-c(index, window_length_level,df_label, cp, cp_noise_filter, cp_marker), 
                    names_to = "variables")%>%
       mutate(variables = factor(variables, 
-                                levels = c("Test dataset", "Rolling gradient", "2nd derivative"
+                                levels = c("1. Input dataset", "2. Rolling gradient", "3. 2nd derivative"
                                            , "r.squareds")))
     
     
