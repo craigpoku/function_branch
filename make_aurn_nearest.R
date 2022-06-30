@@ -15,12 +15,13 @@ aurn_meta_near = importMeta(source = "aurn")
 
 #read in meteorology stations, codes and lat/lon details
 
-directory_met_data_file = "D:/cpdav/UK_met_data/noaa_UK_met_data_"
-noaa_files = list.files("D:/cpdav/UK_met_data/")
+directory_met_data_file = "/home/craig/UK_met_data/noaa_UK_met_data_"
+noaa_files = list.files("/home/craig/UK_met_data/")
 
 noaa_file_names =  noaa_files %>%
   paste0(collapse = " ")
 
+file_i = read.csv("/home/craig/UK_met_data/noaa_UK_met_data_888970-99999.csv")
 #check data availability
 #function data_availability() available in script data_availability_noaa_function.R
 
@@ -57,6 +58,3 @@ aurn_noaa_nearest = noaa_sf[sf::st_nearest_feature(aurn_sf,noaa_sf),] %>%
          met_code = map_chr(noaa,~unique(.$code)),
          met_site = map_chr(noaa,~unique(.$station))) %>% 
   left_join(aurn_meta_near[,c("code","site_type")],"code")
-
-
-saveRDS(aurn_noaa_nearest,"aurn_noaa_nearest_COVID.RDS")

@@ -4,8 +4,8 @@
 
 
 read_met_sites = function(site_code, metcode, directory_met_data, begin_date, end_date){
-  
-  met_UK_df = read.csv(paste(directory_met_data, metcode,".csv")) %>%
+
+  met_UK_df = read.csv(paste(directory_met_data, metcode,".csv", sep = "")) %>%
     mutate(date = lubridate::ymd_hms(date)) %>%
     filter(date >= as.Date(begin_date) & date <= as.Date(end_date)) %>%
     rename(met_code = code)
@@ -15,7 +15,7 @@ read_met_sites = function(site_code, metcode, directory_met_data, begin_date, en
   
   UK_raw_df = importAURN(site = site_code, year = begin_year:end_year, meta = TRUE)
   
-  if(!is.null(UK_raw_df)){
+  if(length(UK_raw_df)!=0){
     met_UK_df = UK_raw_df %>% 
       select(-any_of(c("ws", "wd", "air_temp", "latitude", "longitude"))) %>% 
       left_join(met_UK_df, ., by = "date")
@@ -307,7 +307,7 @@ reformat_random_forest_df_output_statistics_added = function(df, UK_code, site_s
       predict_df = plyr::ldply(df, 
                                data.frame) %>%
         filter(!is.na(date)) %>%
-        rename(sites = .id, normal_value = rm_normal_value, observed = raw_value)%>%
+        rename(sites = .id, normal_value = rm_normal_value, observed = value)%>%
         select(sites, date, normal_value, observed)%>%
         filter(sites %in% site_subset_code) 
     }
@@ -315,7 +315,7 @@ reformat_random_forest_df_output_statistics_added = function(df, UK_code, site_s
       predict_df = plyr::ldply(df, 
                                data.frame) %>%
         filter(!is.na(date)) %>%
-        rename(sites = .id, normal_value = rm_normal_value, observed = raw_value)%>%
+        rename(sites = .id, normal_value = rm_normal_value, observed = value)%>%
         select(sites, date, normal_value, observed) 
     }
     
